@@ -21,28 +21,16 @@ h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
 .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .color-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
 .card-label { font-size: 14px; font-weight: 500; flex: 1; }
-input[type="url"] {
+input[type="url"],
+input[type="text"] {
   width: 100%; background: #1a1a1a; border: 1px solid #444; border-radius: 8px;
   color: #fff; font-size: 13px; padding: 10px 12px; outline: none;
   transition: border-color 0.15s;
 }
-input[type="url"]:focus { border-color: #FF6600; }
+input[type="url"]:focus,
+input[type="text"]:focus { border-color: #FF6600; }
 input::placeholder { color: #555; }
-
-/* ── Calendar name badge ── */
-.cal-name {
-  font-size: 12px; margin-top: 8px; min-height: 18px;
-  display: flex; align-items: center; gap: 6px;
-}
-.cal-name.loading { color: #666; }
-.cal-name.found   { color: #FF6600; font-weight: 500; }
-.cal-name.error   { color: #888; }
-.cal-name .spinner {
-  width: 10px; height: 10px; border: 2px solid #555;
-  border-top-color: #FF6600; border-radius: 50%;
-  animation: spin 0.7s linear infinite; flex-shrink: 0;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+.field-label { font-size: 11px; color: #888; margin: 12px 0 6px; }
 
 /* ── Colour swatches ── */
 .swatch-label { font-size: 11px; color: #888; margin: 12px 0 8px; }
@@ -136,8 +124,10 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="color-dot" id="dot0" style="background:#20C997"></div>
     <span class="card-label">Calendar 1</span>
   </div>
+  <div class="field-label">Name</div>
+  <input type="text" id="label0" placeholder="e.g. Personal" />
+  <div class="field-label">URL</div>
   <input type="url" id="url0" placeholder="https://example.com/calendar.ics" />
-  <div class="cal-name" id="name0"></div>
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches0"></div>
 </div>
@@ -147,8 +137,10 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="color-dot" id="dot1" style="background:#AA44FF"></div>
     <span class="card-label">Calendar 2</span>
   </div>
+  <div class="field-label">Name</div>
+  <input type="text" id="label1" placeholder="e.g. Work" />
+  <div class="field-label">URL</div>
   <input type="url" id="url1" placeholder="https://example.com/calendar.ics" />
-  <div class="cal-name" id="name1"></div>
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches1"></div>
 </div>
@@ -158,8 +150,10 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="color-dot" id="dot2" style="background:#FF6060"></div>
     <span class="card-label">Calendar 3</span>
   </div>
+  <div class="field-label">Name</div>
+  <input type="text" id="label2" placeholder="e.g. Sports" />
+  <div class="field-label">URL</div>
   <input type="url" id="url2" placeholder="https://example.com/calendar.ics" />
-  <div class="cal-name" id="name2"></div>
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches2"></div>
 </div>
@@ -191,64 +185,6 @@ var PALETTE = [
 var selectedColor     = [0, 4, 8];
 var selectedHourColor = 11;
 
-// ── Fetch calendar name from ICS ──────────────────────────────
-// Reads the first ~2 KB of the ICS file, looks for X-WR-CALNAME.
-var fetchTimers = [null, null, null];
-
-function fetchCalendarName(calIdx, url) {
-  var nameEl = document.getElementById("name" + calIdx);
-  if (!url) { nameEl.innerHTML = ""; return; }
-
-  // Debounce — wait 800ms after last keystroke before fetching
-  if (fetchTimers[calIdx]) clearTimeout(fetchTimers[calIdx]);
-  fetchTimers[calIdx] = setTimeout(function() {
-    nameEl.className = "cal-name loading";
-    nameEl.innerHTML = '<div class="spinner"></div> Fetching…';
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    // Only need the header of the file — stop after 2 KB
-    xhr.onprogress = function() {
-      if (xhr.responseText.length > 2048) xhr.abort();
-    };
-    xhr.onload = function() {
-      var name = extractCalName(xhr.responseText);
-      if (name) {
-        nameEl.className = "cal-name found";
-        nameEl.textContent = "📅 " + name;
-      } else {
-        nameEl.className = "cal-name error";
-        nameEl.textContent = "Name not found in feed";
-      }
-    };
-    xhr.onabort = function() {
-      // Aborted after 2 KB — still try to parse what we got
-      var name = extractCalName(xhr.responseText);
-      if (name) {
-        nameEl.className = "cal-name found";
-        nameEl.textContent = "📅 " + name;
-      } else {
-        nameEl.className = "cal-name error";
-        nameEl.textContent = "Name not found in feed";
-      }
-    };
-    xhr.onerror = function() {
-      nameEl.className = "cal-name error";
-      nameEl.textContent = "Could not reach feed";
-    };
-    xhr.send();
-  }, 800);
-}
-
-function extractCalName(text) {
-  // Unfold ICS line continuations first
-  var unfolded = text.replace(/\r\n[ \t]/g, "").replace(/\n[ \t]/g, "");
-  var match = unfolded.match(/X-WR-CALNAME[^:]*:([^\r\n]+)/i);
-  if (match) return match[1].trim();
-  // Fallback: try PRODID or just return nothing
-  return null;
-}
-
 // ── Swatch helpers ────────────────────────────────────────────
 function buildSwatches(gridId, currentIdx, onSelect) {
   var grid = document.getElementById(gridId);
@@ -275,13 +211,6 @@ function selectHourColor(paletteIdx) {
   buildSwatches("swatchesHour", paletteIdx, selectHourColor);
 }
 
-// ── Wire up URL inputs ────────────────────────────────────────
-[0, 1, 2].forEach(function(i) {
-  document.getElementById("url" + i).addEventListener("input", function() {
-    fetchCalendarName(i, this.value.trim());
-  });
-});
-
 // ── Load existing config ──────────────────────────────────────
 (function() {
   var params = new URLSearchParams(window.location.search);
@@ -289,9 +218,12 @@ function selectHourColor(paletteIdx) {
   if (raw) {
     try {
       var config = JSON.parse(decodeURIComponent(raw));
-      if (config.url0) document.getElementById("url0").value = config.url0;
-      if (config.url1) document.getElementById("url1").value = config.url1;
-      if (config.url2) document.getElementById("url2").value = config.url2;
+      if (config.label0) document.getElementById("label0").value = config.label0;
+      if (config.label1) document.getElementById("label1").value = config.label1;
+      if (config.label2) document.getElementById("label2").value = config.label2;
+      if (config.url0)   document.getElementById("url0").value   = config.url0;
+      if (config.url1)   document.getElementById("url1").value   = config.url1;
+      if (config.url2)   document.getElementById("url2").value   = config.url2;
       document.getElementById("useFahrenheit").checked = !!config.useFahrenheit;
       document.getElementById("showDate").checked  = (config.showDate  !== false);
       document.getElementById("showTicks").checked = (config.showTicks !== false);
@@ -303,10 +235,6 @@ function selectHourColor(paletteIdx) {
       document.getElementById("dot1").style.background    = PALETTE[selectedColor[1]].hex;
       document.getElementById("dot2").style.background    = PALETTE[selectedColor[2]].hex;
       document.getElementById("dotHour").style.background = PALETTE[selectedHourColor].hex;
-      // Fetch names for any pre-filled URLs
-      if (config.url0) fetchCalendarName(0, config.url0);
-      if (config.url1) fetchCalendarName(1, config.url1);
-      if (config.url2) fetchCalendarName(2, config.url2);
     } catch(e) {}
   }
 
@@ -318,6 +246,9 @@ function selectHourColor(paletteIdx) {
 
 function save() {
   var config = {
+    label0:        document.getElementById("label0").value.trim(),
+    label1:        document.getElementById("label1").value.trim(),
+    label2:        document.getElementById("label2").value.trim(),
     url0:          document.getElementById("url0").value.trim(),
     url1:          document.getElementById("url1").value.trim(),
     url2:          document.getElementById("url2").value.trim(),
