@@ -29,6 +29,21 @@ input[type="url"] {
 input[type="url"]:focus { border-color: #FF6600; }
 input::placeholder { color: #555; }
 
+/* ── Calendar name badge ── */
+.cal-name {
+  font-size: 12px; margin-top: 8px; min-height: 18px;
+  display: flex; align-items: center; gap: 6px;
+}
+.cal-name.loading { color: #666; }
+.cal-name.found   { color: #FF6600; font-weight: 500; }
+.cal-name.error   { color: #888; }
+.cal-name .spinner {
+  width: 10px; height: 10px; border: 2px solid #555;
+  border-top-color: #FF6600; border-radius: 50%;
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── Colour swatches ── */
 .swatch-label { font-size: 11px; color: #888; margin: 12px 0 8px; }
 .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -66,7 +81,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;
 }
 .save-btn:active { background: #cc5200; }
-.example-link { color: #FF6600; text-decoration: none; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -123,9 +137,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <span class="card-label">Calendar 1</span>
   </div>
   <input type="url" id="url0" placeholder="https://example.com/calendar.ics" />
-  <p style="font-size:11px;color:#666;margin-top:6px;">
-    e.g. Formula 1: <a class="example-link" href="#" onclick="fillExample('url0','https://ics.ecal.com/ecal-sub/635c8b2d1c4e820023e8c5ea/Formula%201.ics');return false;">fill F1 calendar</a>
-  </p>
+  <div class="cal-name" id="name0"></div>
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches0"></div>
 </div>
@@ -136,6 +148,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <span class="card-label">Calendar 2</span>
   </div>
   <input type="url" id="url1" placeholder="https://example.com/calendar.ics" />
+  <div class="cal-name" id="name1"></div>
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches1"></div>
 </div>
@@ -146,6 +159,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <span class="card-label">Calendar 3</span>
   </div>
   <input type="url" id="url2" placeholder="https://example.com/calendar.ics" />
+  <div class="cal-name" id="name2"></div>
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches2"></div>
 </div>
@@ -174,10 +188,68 @@ var PALETTE = [
   { name: "Spring Green", hex: "#00FF55" },
 ];
 
-// Selected palette indices
-var selectedColor     = [0, 4, 8];  // calendar arcs
-var selectedHourColor = 11;         // hour hand — default White
+var selectedColor     = [0, 4, 8];
+var selectedHourColor = 11;
 
+// ── Fetch calendar name from ICS ──────────────────────────────
+// Reads the first ~2 KB of the ICS file, looks for X-WR-CALNAME.
+var fetchTimers = [null, null, null];
+
+function fetchCalendarName(calIdx, url) {
+  var nameEl = document.getElementById("name" + calIdx);
+  if (!url) { nameEl.innerHTML = ""; return; }
+
+  // Debounce — wait 800ms after last keystroke before fetching
+  if (fetchTimers[calIdx]) clearTimeout(fetchTimers[calIdx]);
+  fetchTimers[calIdx] = setTimeout(function() {
+    nameEl.className = "cal-name loading";
+    nameEl.innerHTML = '<div class="spinner"></div> Fetching…';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    // Only need the header of the file — stop after 2 KB
+    xhr.onprogress = function() {
+      if (xhr.responseText.length > 2048) xhr.abort();
+    };
+    xhr.onload = function() {
+      var name = extractCalName(xhr.responseText);
+      if (name) {
+        nameEl.className = "cal-name found";
+        nameEl.textContent = "📅 " + name;
+      } else {
+        nameEl.className = "cal-name error";
+        nameEl.textContent = "Name not found in feed";
+      }
+    };
+    xhr.onabort = function() {
+      // Aborted after 2 KB — still try to parse what we got
+      var name = extractCalName(xhr.responseText);
+      if (name) {
+        nameEl.className = "cal-name found";
+        nameEl.textContent = "📅 " + name;
+      } else {
+        nameEl.className = "cal-name error";
+        nameEl.textContent = "Name not found in feed";
+      }
+    };
+    xhr.onerror = function() {
+      nameEl.className = "cal-name error";
+      nameEl.textContent = "Could not reach feed";
+    };
+    xhr.send();
+  }, 800);
+}
+
+function extractCalName(text) {
+  // Unfold ICS line continuations first
+  var unfolded = text.replace(/\r\n[ \t]/g, "").replace(/\n[ \t]/g, "");
+  var match = unfolded.match(/X-WR-CALNAME[^:]*:([^\r\n]+)/i);
+  if (match) return match[1].trim();
+  // Fallback: try PRODID or just return nothing
+  return null;
+}
+
+// ── Swatch helpers ────────────────────────────────────────────
 function buildSwatches(gridId, currentIdx, onSelect) {
   var grid = document.getElementById(gridId);
   grid.innerHTML = "";
@@ -203,7 +275,14 @@ function selectHourColor(paletteIdx) {
   buildSwatches("swatchesHour", paletteIdx, selectHourColor);
 }
 
-// ── Load existing config ──
+// ── Wire up URL inputs ────────────────────────────────────────
+[0, 1, 2].forEach(function(i) {
+  document.getElementById("url" + i).addEventListener("input", function() {
+    fetchCalendarName(i, this.value.trim());
+  });
+});
+
+// ── Load existing config ──────────────────────────────────────
 (function() {
   var params = new URLSearchParams(window.location.search);
   var raw = params.get("config");
@@ -216,28 +295,26 @@ function selectHourColor(paletteIdx) {
       document.getElementById("useFahrenheit").checked = !!config.useFahrenheit;
       document.getElementById("showDate").checked  = (config.showDate  !== false);
       document.getElementById("showTicks").checked = (config.showTicks !== false);
-      if (typeof config.color0     === "number") selectedColor[0]  = config.color0;
-      if (typeof config.color1     === "number") selectedColor[1]  = config.color1;
-      if (typeof config.color2     === "number") selectedColor[2]  = config.color2;
-      if (typeof config.hourColor  === "number") selectedHourColor = config.hourColor;
-      // Update dots from loaded config
+      if (typeof config.color0    === "number") selectedColor[0]  = config.color0;
+      if (typeof config.color1    === "number") selectedColor[1]  = config.color1;
+      if (typeof config.color2    === "number") selectedColor[2]  = config.color2;
+      if (typeof config.hourColor === "number") selectedHourColor = config.hourColor;
       document.getElementById("dot0").style.background    = PALETTE[selectedColor[0]].hex;
       document.getElementById("dot1").style.background    = PALETTE[selectedColor[1]].hex;
       document.getElementById("dot2").style.background    = PALETTE[selectedColor[2]].hex;
       document.getElementById("dotHour").style.background = PALETTE[selectedHourColor].hex;
+      // Fetch names for any pre-filled URLs
+      if (config.url0) fetchCalendarName(0, config.url0);
+      if (config.url1) fetchCalendarName(1, config.url1);
+      if (config.url2) fetchCalendarName(2, config.url2);
     } catch(e) {}
   }
 
-  // Build all swatch grids
   buildSwatches("swatchesHour", selectedHourColor, selectHourColor);
   [0, 1, 2].forEach(function(i) {
     buildSwatches("swatches" + i, selectedColor[i], function(pi) { selectCalColor(i, pi); });
   });
 })();
-
-function fillExample(id, url) {
-  document.getElementById(id).value = url;
-}
 
 function save() {
   var config = {
