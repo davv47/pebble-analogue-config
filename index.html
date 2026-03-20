@@ -8,11 +8,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #1a1a1a;
-  color: #fff;
-  padding: 24px 16px;
-  max-width: 480px;
-  margin: 0 auto;
+  background: #1a1a1a; color: #fff;
+  padding: 24px 16px; max-width: 480px; margin: 0 auto;
 }
 h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
 .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; line-height: 1.5; }
@@ -20,12 +17,10 @@ h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
   font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
   text-transform: uppercase; color: #888; margin-bottom: 12px;
 }
-.calendar-block {
-  background: #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 12px;
-}
-.calendar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.card { background: #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .color-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-.calendar-label { font-size: 14px; font-weight: 500; flex: 1; }
+.card-label { font-size: 14px; font-weight: 500; flex: 1; }
 input[type="url"] {
   width: 100%; background: #1a1a1a; border: 1px solid #444; border-radius: 8px;
   color: #fff; font-size: 13px; padding: 10px 12px; outline: none;
@@ -36,9 +31,7 @@ input::placeholder { color: #555; }
 
 /* ── Colour swatches ── */
 .swatch-label { font-size: 11px; color: #888; margin: 12px 0 8px; }
-.swatch-grid {
-  display: flex; flex-wrap: wrap; gap: 8px;
-}
+.swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .swatch {
   width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
   border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
@@ -60,9 +53,9 @@ input::placeholder { color: #555; }
   transition: background 0.2s; cursor: pointer;
 }
 .slider:before {
-  content: ""; position: absolute; width: 27px; height: 27px; left: 2px; top: 2px;
-  background: #fff; border-radius: 50%; transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  content: ""; position: absolute; width: 27px; height: 27px;
+  left: 2px; top: 2px; background: #fff; border-radius: 50%;
+  transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 input:checked + .slider { background: #FF6600; }
 input:checked + .slider:before { transform: translateX(20px); }
@@ -79,7 +72,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 <body>
 
 <h1>Watchface Settings</h1>
-<p class="subtitle">Customise your analogue watchface — calendars, colours, and display options.</p>
+<p class="subtitle">Customise your analogue watchface — hands, calendars, and display options.</p>
 
 <!-- ── Display options ── -->
 <div class="section-title">Display</div>
@@ -109,13 +102,25 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div class="divider"></div>
 
+<!-- ── Hour hand colour ── -->
+<div class="section-title">Hour Hand</div>
+<div class="card">
+  <div class="card-header">
+    <div class="color-dot" id="dotHour" style="background:#FFFFFF"></div>
+    <span class="card-label">Hour hand colour</span>
+  </div>
+  <div class="swatch-grid" id="swatchesHour"></div>
+</div>
+
+<div class="divider"></div>
+
 <!-- ── Calendars ── -->
 <div class="section-title">Calendars</div>
 
-<div class="calendar-block">
-  <div class="calendar-header">
+<div class="card">
+  <div class="card-header">
     <div class="color-dot" id="dot0" style="background:#20C997"></div>
-    <span class="calendar-label">Calendar 1</span>
+    <span class="card-label">Calendar 1</span>
   </div>
   <input type="url" id="url0" placeholder="https://example.com/calendar.ics" />
   <p style="font-size:11px;color:#666;margin-top:6px;">
@@ -125,20 +130,20 @@ input:checked + .slider:before { transform: translateX(20px); }
   <div class="swatch-grid" id="swatches0"></div>
 </div>
 
-<div class="calendar-block">
-  <div class="calendar-header">
+<div class="card">
+  <div class="card-header">
     <div class="color-dot" id="dot1" style="background:#AA44FF"></div>
-    <span class="calendar-label">Calendar 2</span>
+    <span class="card-label">Calendar 2</span>
   </div>
   <input type="url" id="url1" placeholder="https://example.com/calendar.ics" />
   <div class="swatch-label">Arc colour</div>
   <div class="swatch-grid" id="swatches1"></div>
 </div>
 
-<div class="calendar-block">
-  <div class="calendar-header">
+<div class="card">
+  <div class="card-header">
     <div class="color-dot" id="dot2" style="background:#FF6060"></div>
-    <span class="calendar-label">Calendar 3</span>
+    <span class="card-label">Calendar 3</span>
   </div>
   <input type="url" id="url2" placeholder="https://example.com/calendar.ics" />
   <div class="swatch-label">Arc colour</div>
@@ -149,80 +154,85 @@ input:checked + .slider:before { transform: translateX(20px); }
 <button class="save-btn" onclick="save()">Save &amp; Close</button>
 
 <script>
-// ── Curated Pebble-safe colour palette ──
-// Index here must match PALETTE array in main.c exactly.
+// Must match s_palette_argb[] in main.c exactly.
 var PALETTE = [
-  { name: "Teal",        hex: "#00CFA5" },
-  { name: "Mint",        hex: "#55FF00" },
-  { name: "Cyan",        hex: "#00FFFF" },
-  { name: "Blue",        hex: "#0055FF" },
-  { name: "Lavender",    hex: "#AAAAFF" },
-  { name: "Purple",      hex: "#AA00FF" },
-  { name: "Pink",        hex: "#FF55FF" },
-  { name: "Red",         hex: "#FF0000" },
-  { name: "Coral",       hex: "#FF5555" },
-  { name: "Orange",      hex: "#FF8000" },
-  { name: "Yellow",      hex: "#FFFF00" },
-  { name: "White",       hex: "#FFFFFF" },
-  { name: "Light Gray",  hex: "#AAAAAA" },
-  { name: "Dark Gray",   hex: "#555555" },
-  { name: "Indigo",      hex: "#5500AA" },
-  { name: "Spring Green",hex: "#00FF55" },
+  { name: "Teal",         hex: "#00CFA5" },
+  { name: "Mint",         hex: "#55FF00" },
+  { name: "Cyan",         hex: "#00FFFF" },
+  { name: "Blue",         hex: "#0055FF" },
+  { name: "Lavender",     hex: "#AAAAFF" },
+  { name: "Purple",       hex: "#AA00FF" },
+  { name: "Pink",         hex: "#FF55FF" },
+  { name: "Red",          hex: "#FF0000" },
+  { name: "Coral",        hex: "#FF5555" },
+  { name: "Orange",       hex: "#FF8000" },
+  { name: "Yellow",       hex: "#FFFF00" },
+  { name: "White",        hex: "#FFFFFF" },
+  { name: "Light Gray",   hex: "#AAAAAA" },
+  { name: "Dark Gray",    hex: "#555555" },
+  { name: "Indigo",       hex: "#5500AA" },
+  { name: "Spring Green", hex: "#00FF55" },
 ];
 
-// Default colour index per calendar
-var selectedColor = [0, 4, 8];
+// Selected palette indices
+var selectedColor     = [0, 4, 8];  // calendar arcs
+var selectedHourColor = 11;         // hour hand — default White
 
-function buildSwatches(calIdx) {
-  var grid = document.getElementById("swatches" + calIdx);
+function buildSwatches(gridId, currentIdx, onSelect) {
+  var grid = document.getElementById(gridId);
+  grid.innerHTML = "";
   PALETTE.forEach(function(color, i) {
     var sw = document.createElement("div");
-    sw.className = "swatch" + (selectedColor[calIdx] === i ? " selected" : "");
+    sw.className = "swatch" + (currentIdx === i ? " selected" : "");
     sw.style.background = color.hex;
     sw.title = color.name;
-    sw.onclick = (function(ci, pi) {
-      return function() { selectColor(ci, pi); };
-    })(calIdx, i);
+    sw.onclick = function() { onSelect(i); };
     grid.appendChild(sw);
   });
 }
 
-function selectColor(calIdx, paletteIdx) {
+function selectCalColor(calIdx, paletteIdx) {
   selectedColor[calIdx] = paletteIdx;
-  // Update dot
   document.getElementById("dot" + calIdx).style.background = PALETTE[paletteIdx].hex;
-  // Update swatch selection state
-  var swatches = document.getElementById("swatches" + calIdx).children;
-  for (var i = 0; i < swatches.length; i++) {
-    swatches[i].className = "swatch" + (i === paletteIdx ? " selected" : "");
-  }
+  buildSwatches("swatches" + calIdx, paletteIdx, function(pi) { selectCalColor(calIdx, pi); });
+}
+
+function selectHourColor(paletteIdx) {
+  selectedHourColor = paletteIdx;
+  document.getElementById("dotHour").style.background = PALETTE[paletteIdx].hex;
+  buildSwatches("swatchesHour", paletteIdx, selectHourColor);
 }
 
 // ── Load existing config ──
 (function() {
   var params = new URLSearchParams(window.location.search);
   var raw = params.get("config");
-  if (!raw) {
-    [0, 1, 2].forEach(buildSwatches);
-    return;
+  if (raw) {
+    try {
+      var config = JSON.parse(decodeURIComponent(raw));
+      if (config.url0) document.getElementById("url0").value = config.url0;
+      if (config.url1) document.getElementById("url1").value = config.url1;
+      if (config.url2) document.getElementById("url2").value = config.url2;
+      document.getElementById("useFahrenheit").checked = !!config.useFahrenheit;
+      document.getElementById("showDate").checked  = (config.showDate  !== false);
+      document.getElementById("showTicks").checked = (config.showTicks !== false);
+      if (typeof config.color0     === "number") selectedColor[0]  = config.color0;
+      if (typeof config.color1     === "number") selectedColor[1]  = config.color1;
+      if (typeof config.color2     === "number") selectedColor[2]  = config.color2;
+      if (typeof config.hourColor  === "number") selectedHourColor = config.hourColor;
+      // Update dots from loaded config
+      document.getElementById("dot0").style.background    = PALETTE[selectedColor[0]].hex;
+      document.getElementById("dot1").style.background    = PALETTE[selectedColor[1]].hex;
+      document.getElementById("dot2").style.background    = PALETTE[selectedColor[2]].hex;
+      document.getElementById("dotHour").style.background = PALETTE[selectedHourColor].hex;
+    } catch(e) {}
   }
-  try {
-    var config = JSON.parse(decodeURIComponent(raw));
-    if (config.url0) document.getElementById("url0").value = config.url0;
-    if (config.url1) document.getElementById("url1").value = config.url1;
-    if (config.url2) document.getElementById("url2").value = config.url2;
-    document.getElementById("useFahrenheit").checked = !!config.useFahrenheit;
-    document.getElementById("showDate").checked = (config.showDate !== false);
-    document.getElementById("showTicks").checked = (config.showTicks !== false);
-    if (typeof config.color0 === "number") selectedColor[0] = config.color0;
-    if (typeof config.color1 === "number") selectedColor[1] = config.color1;
-    if (typeof config.color2 === "number") selectedColor[2] = config.color2;
-    // Set initial dot colours
-    document.getElementById("dot0").style.background = PALETTE[selectedColor[0]].hex;
-    document.getElementById("dot1").style.background = PALETTE[selectedColor[1]].hex;
-    document.getElementById("dot2").style.background = PALETTE[selectedColor[2]].hex;
-  } catch(e) {}
-  [0, 1, 2].forEach(buildSwatches);
+
+  // Build all swatch grids
+  buildSwatches("swatchesHour", selectedHourColor, selectHourColor);
+  [0, 1, 2].forEach(function(i) {
+    buildSwatches("swatches" + i, selectedColor[i], function(pi) { selectCalColor(i, pi); });
+  });
 })();
 
 function fillExample(id, url) {
@@ -240,6 +250,7 @@ function save() {
     color0:        selectedColor[0],
     color1:        selectedColor[1],
     color2:        selectedColor[2],
+    hourColor:     selectedHourColor,
   };
   window.location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(config));
 }
