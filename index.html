@@ -73,27 +73,62 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div class="section-title">Display</div>
 <div class="toggle-block">
+
   <div class="toggle-row">
     <div>
       <div class="toggle-label">Temperature Unit</div>
-      <div class="toggle-sub">Off = °C &nbsp;·&nbsp; On = °F</div>
+      <div class="toggle-sub">Off = °C · On = °F</div>
     </div>
-    <label class="switch"><input type="checkbox" id="useFahrenheit"><span class="slider"></span></label>
+    <label class="switch">
+      <input type="checkbox" id="useFahrenheit">
+      <span class="slider"></span>
+    </label>
   </div>
+
   <div class="toggle-row">
     <div>
       <div class="toggle-label">Show Date</div>
       <div class="toggle-sub">Display day and date at the bottom</div>
     </div>
-    <label class="switch"><input type="checkbox" id="showDate" checked><span class="slider"></span></label>
+    <label class="switch">
+      <input type="checkbox" id="showDate" checked>
+      <span class="slider"></span>
+    </label>
   </div>
+
   <div class="toggle-row">
     <div>
       <div class="toggle-label">Hour Tick Marks</div>
       <div class="toggle-sub">Tick at each hour; thicker at 12, 3, 6, 9</div>
     </div>
-    <label class="switch"><input type="checkbox" id="showTicks" checked><span class="slider"></span></label>
+    <label class="switch">
+      <input type="checkbox" id="showTicks" checked>
+      <span class="slider"></span>
+    </label>
   </div>
+
+  <div class="toggle-row">
+    <div>
+      <div class="toggle-label">Show Seconds Hand</div>
+      <div class="toggle-sub">Display moving second hand</div>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="showSeconds" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="toggle-row">
+    <div>
+      <div class="toggle-label">Battery Warning Only</div>
+      <div class="toggle-sub">Only show battery under 20%</div>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="batteryWarningOnly" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+
 </div>
 
 <div class="divider"></div>
