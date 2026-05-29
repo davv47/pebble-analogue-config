@@ -153,6 +153,15 @@ input:checked + .slider:before { transform: translateX(20px); }
   <div class="swatch-grid" id="swatchesHour"></div>
 </div>
 
+<div class="section-title">Minute Hand</div>
+<div class="card">
+  <div class="card-header">
+    <div class="color-dot" id="dotMinute" style="background:#FFFFFF"></div>
+    <span class="card-label">Minute hand colour</span>
+  </div>
+  <div class="swatch-grid" id="swatchesMinute"></div>
+</div>
+
 <div class="divider"></div>
 
 <div class="section-title">Calendars</div>
@@ -231,16 +240,16 @@ function buildSwatches(gridId, currentIdx, onSelect) {
   });
 }
 
-function selectCalColor(calIdx, paletteIdx) {
-  selectedColor[calIdx] = paletteIdx;
-  document.getElementById("dot" + calIdx).style.background = PALETTE[paletteIdx].hex;
-  buildSwatches("swatches" + calIdx, paletteIdx, function(pi) { selectCalColor(calIdx, pi); });
-}
-
 function selectHourColor(paletteIdx) {
   selectedHourColor = paletteIdx;
   document.getElementById("dotHour").style.background = PALETTE[paletteIdx].hex;
   buildSwatches("swatchesHour", paletteIdx, selectHourColor);
+}
+
+function selectMinuteColor(paletteIdx) {
+  selectedMinuteColor = paletteIdx;
+  document.getElementById("dotMinute").style.background = PALETTE[paletteIdx].hex;
+  buildSwatches("swatchesMinute", paletteIdx, selectMinuteColor);
 }
 
 function selectHourColor(paletteIdx) {
@@ -283,6 +292,7 @@ function selectHourColor(paletteIdx) {
 
   buildSwatches("swatchesHour", selectedHourColor, selectHourColor);
   buildSwatches("swatchesMinute", selectedMinuteColor, selectMinuteColor);
+  
   for (var i = 0; i < MAX_CALENDARS; i++) {
     (function(idx) {
       buildSwatches("swatches" + idx, selectedColor[idx], function(pi) { selectCalColor(idx, pi); });
