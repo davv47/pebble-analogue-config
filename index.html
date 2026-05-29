@@ -241,6 +241,10 @@ function selectHourColor(paletteIdx) {
       document.getElementById("useFahrenheit").checked = !!config.useFahrenheit;
       document.getElementById("showDate").checked  = (config.showDate  !== false);
       document.getElementById("showTicks").checked = (config.showTicks !== false);
+	  document.getElementById("showSeconds").checked =
+	    (config.showSeconds !== false);
+	  document.getElementById("batteryWarningOnly").checked =
+	    (config.batteryWarningOnly !== false);
       if (typeof config.hourColor === "number") selectedHourColor = config.hourColor;
       document.getElementById("dotHour").style.background = PALETTE[selectedHourColor].hex;
       for (var i = 0; i < MAX_CALENDARS; i++) {
@@ -267,6 +271,9 @@ function save() {
     useFahrenheit: document.getElementById("useFahrenheit").checked,
     showDate:      document.getElementById("showDate").checked,
     showTicks:     document.getElementById("showTicks").checked,
+    showSeconds: document.getElementById("showSeconds").checked,
+    batteryWarningOnly:
+      document.getElementById("batteryWarningOnly").checked,
     hourColor:     selectedHourColor,
   };
   for (var i = 0; i < MAX_CALENDARS; i++) {
